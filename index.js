@@ -61,10 +61,37 @@ app.put("/book",(req,res)=>{
                 data:Books[i]
             })
         }
+        else{
+            return res.send({
+                success:false,
+                msg : "book name not found",
+                data : null
+            })
+        }
 
     }
 
 });
+app.patch("/bookprice/:name",(req,res)=>{
+   const {name} = req.params
+   const {price}=req.body
+   for(let i=0;i<Books.length;i++){
+    if(name==Books[i].name){
+        Books[i].price=price;
+        return res.send({
+            success:true,
+            msg :"book price updated",
+            data:Books[i]
+        })
+    }
+    else{
+        return res.send({
+            success:false,
+            msg : "book name not found",
+            data : null
+        })
+    }
+}});
 app.get("/health",(req,res)=>{
     return res.send("server is up and running")
 });
