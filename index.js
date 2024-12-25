@@ -2,7 +2,7 @@ import express from "express"
 import dotenv from "dotenv";
 dotenv.config();
 const app = express();
-const PORT=5000;
+const PORT=process.env.PORT;
 app.use(express.json());
 const Books=[{
     name :"7 HABITS OF HIGHLY EFFECTIVE PEOPLE",
