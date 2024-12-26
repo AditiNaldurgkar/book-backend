@@ -5,6 +5,7 @@ import cors from "cors"
 const app = express();
 const PORT=process.env.PORT;
 app.use(cors());
+app.use(express.json())
 const Books=[{
     name :"7 HABITS OF HIGHLY EFFECTIVE PEOPLE",
     price : 500
