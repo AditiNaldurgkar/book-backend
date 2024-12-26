@@ -1,9 +1,10 @@
 import express from "express"
 import dotenv from "dotenv";
 dotenv.config();
+import cors from "cors"
 const app = express();
 const PORT=process.env.PORT;
-app.use(express.json());
+app.use(cors());
 const Books=[{
     name :"7 HABITS OF HIGHLY EFFECTIVE PEOPLE",
     price : 500
