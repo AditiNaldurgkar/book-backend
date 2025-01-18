@@ -30,6 +30,20 @@ app.post("/books",(req,res)=>{
         data:{Books}
     })
 })
+app.get("/books/:name",(req,res)=>{const { name } = req.params; 
+
+for (let i = 0; i < Books.length; i++) {
+    if (name === Books[i].name) { 
+        res.send({
+            success: true,
+            msg: "Book fetched successfully",
+            data:  Books[i],
+        });
+        break; 
+    }
+}
+
+});
 app.delete("/books/:name", (req, res) => {
     const { name } = req.params; 
     let bookFound = false;
