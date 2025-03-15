@@ -19,7 +19,7 @@ imglink:"https://m.media-amazon.com/images/I/71cCPf-r5ML.jpg",
 description:"The 7 Habits of Highly Effective People is a business and self-help book written by Stephen R. Covey.[1] First published in 1989, the book goes over Covey's ideas on how to spur and nurture personal change. He also explores the concept of effectiveness in achieving results, as well as the need for focus on character ethic rather than the personality ethic in selecting value systems. As named, his book is laid out through seven habits he has identified as conducive to personal growth."
 }]
 app.get("/books",(req,res)=>{
-    res.send(Books)
+    res.status(200).send(Books)
 })
 app.post("/books",(req,res)=>{
     const {name ,price,imglink,description} =req.body;
@@ -30,7 +30,7 @@ app.post("/books",(req,res)=>{
         description:description
     }
     Books.push(newbook);
-    res.send({
+    res.status(201).send({
         success:"true",
         msg :"book added successfully",
         data:{Books}
@@ -40,7 +40,7 @@ app.get("/books/:name",(req,res)=>{const { name } = req.params;
 
 for (let i = 0; i < Books.length; i++) {
     if (name === Books[i].name) { 
-        res.send({
+        res.status(200).send({
             success: true,
             msg: "Book fetched successfully",
             data:  Books[i],
@@ -67,7 +67,7 @@ app.delete("/books/:name", (req, res) => {
         });
     }
 
-    res.send({
+    res.status(200).send({
         success: true,
         msg: "Book deleted successfully",
         data: { Books },
@@ -80,7 +80,7 @@ app.put("/books/:name", (req, res) => {
     const bookIndex = Books.findIndex(book => book.name === bookName);
     if (bookIndex !== -1) {
         Books[bookIndex].price = price;
-        return res.json({
+        return res.status(200).json({
             success: true,
             msg: "Book info updated",
             data: Books[bookIndex]
@@ -101,14 +101,14 @@ app.patch("/bookprice/:name",(req,res)=>{
    for(let i=0;i<Books.length;i++){
     if(name==Books[i].name){
         Books[i].price=price;
-        return res.send({
+        return res.status(200).send({
             success:true,
             msg :"book price updated",
             data:Books[i]
         })
     }
     else{
-        return res.send({
+        return res.status(404).send({
             success:false,
             msg : "book name not found",
             data : null
