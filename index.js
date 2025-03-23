@@ -51,21 +51,18 @@ for (let i = 0; i < Books.length; i++) {
 
 });
 app.delete("/books/:name", (req, res) => {
-    const { name } = req.params; 
-    let bookFound = false;
-    for (let i = 0; i < Books.length; i++) {
-        if (name === Books[i].name) { 
-            Books.splice(i, 1); 
-            bookFound = true;
-            break; 
-        }
-    }
-    if (!bookFound) {
+    const name = decodeURIComponent(req.params.name); 
+    let bookIndex = Books.findIndex(book => book.name.toLowerCase() === name.toLowerCase());
+    
+
+    if (bookIndex === -1) {
         return res.status(404).send({
             success: false,
             msg: "Book not found",
         });
     }
+
+    Books.splice(bookIndex, 1); 
 
     res.status(200).send({
         success: true,
@@ -73,6 +70,7 @@ app.delete("/books/:name", (req, res) => {
         data: { Books },
     });
 });
+
 app.put("/books/:name", (req, res) => {
     const bookName = decodeURIComponent(req.params.name); 
     const { price } = req.body;
