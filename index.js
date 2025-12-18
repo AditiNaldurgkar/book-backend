@@ -1,122 +1,145 @@
-import express from "express"
+import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
+import mongoose from "mongoose";
+import Book from "./models/Book.js";
+
 dotenv.config();
-import cors from "cors"
+
 const app = express();
-const PORT=process.env.PORT;
+const PORT = process.env.PORT;
+
 app.use(cors());
-app.use(express.json())
-const Books=[{
-    name :"7 HABITS OF HIGHLY EFFECTIVE PEOPLE",
-    price : 500,
-    imglink :"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJyjYTO_x4inpOOIjqoZtIGSImSgd41D7UjA&s",
-    description :"Inner Engineering is a fascinating read, rich with Sadhguru’s insights and his teachings. If you are ready, it is a tool to help awaken your own inner intelligence, the ultimate and supreme genius that mirrors the wisdom of the cosmos—Deepak ChopraIn his revolutionary new book, visionary, mystic and yogi Sadhguru distils his own experiences with spirituality and yoga and introduces the transformational concept of Inner Engineering. Developed by him over several years, this powerful practice serves to align the mind and the body with energies around and within, creating a world of limitless power and possibilities. Inner Engineering is your own software for joy and well-being."
-},
-{
-name :"INNER ENGINEERING",
-price:300,
-imglink:"https://m.media-amazon.com/images/I/71cCPf-r5ML.jpg",
-description:"The 7 Habits of Highly Effective People is a business and self-help book written by Stephen R. Covey.[1] First published in 1989, the book goes over Covey's ideas on how to spur and nurture personal change. He also explores the concept of effectiveness in achieving results, as well as the need for focus on character ethic rather than the personality ethic in selecting value systems. As named, his book is laid out through seven habits he has identified as conducive to personal growth."
-}]
-app.get("/books",(req,res)=>{
-    res.status(200).send(Books)
-})
-app.post("/books",(req,res)=>{
-    const {name ,price,imglink,description} =req.body;
-    const newbook ={
-        name:name,
-        price:price,
-        imglink:imglink,
-        description:description
-    }
-    Books.push(newbook);
-    res.status(201).send({
-        success:"true",
-        msg :"book added successfully",
-        data:{Books}
-    })
-})
-app.get("/books/:name",(req,res)=>{const { name } = req.params; 
+app.use(express.json());
 
-for (let i = 0; i < Books.length; i++) {
-    if (name === Books[i].name) { 
-        res.status(200).send({
-            success: true,
-            msg: "Book fetched successfully",
-            data:  Books[i],
-        });
-        break; 
-    }
-}
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
 
+
+// ================== ROUTES ==================
+
+// GET all books
+app.get("/books", async (req, res) => {
+  const books = await Book.find();
+  res.status(200).send(books);
 });
-app.delete("/books/:name", (req, res) => {
-    const name = decodeURIComponent(req.params.name); 
-    let bookIndex = Books.findIndex(book => book.name.toLowerCase() === name.toLowerCase());
-    
 
-    if (bookIndex === -1) {
-        return res.status(404).send({
-            success: false,
-            msg: "Book not found",
-        });
-    }
+// ADD book
+app.post("/books", async (req, res) => {
+  const { name, price, imglink, description } = req.body;
 
-    Books.splice(bookIndex, 1); 
+  const newBook = new Book({
+    name,
+    price,
+    imglink,
+    description
+  });
 
-    res.status(200).send({
-        success: true,
-        msg: "Book deleted successfully",
-        data: { Books },
+  await newBook.save();
+
+  res.status(201).send({
+    success: true,
+    msg: "Book added successfully",
+    data: newBook
+  });
+});
+
+// GET book by name
+app.get("/books/:name", async (req, res) => {
+  const { name } = req.params;
+
+  const book = await Book.findOne({ name });
+
+  if (!book) {
+    return res.status(404).send({
+      success: false,
+      msg: "Book not found"
     });
+  }
+
+  res.status(200).send({
+    success: true,
+    msg: "Book fetched successfully",
+    data: book
+  });
 });
 
-app.put("/books/:name", (req, res) => {
-    const bookName = decodeURIComponent(req.params.name); 
-    const { price } = req.body;
-    
-    const bookIndex = Books.findIndex(book => book.name === bookName);
-    if (bookIndex !== -1) {
-        Books[bookIndex].price = price;
-        return res.status(200).json({
-            success: true,
-            msg: "Book info updated",
-            data: Books[bookIndex]
-        });
-    } else {
-        return res.status(404).json({
-            success: false,
-            msg: "Book name not found",
-            data: null
-        });
-    }
+// DELETE book
+app.delete("/books/:name", async (req, res) => {
+  const name = decodeURIComponent(req.params.name);
+
+  const deletedBook = await Book.findOneAndDelete({ name });
+
+  if (!deletedBook) {
+    return res.status(404).send({
+      success: false,
+      msg: "Book not found"
+    });
+  }
+
+  res.status(200).send({
+    success: true,
+    msg: "Book deleted successfully",
+    data: deletedBook
+  });
 });
 
+// UPDATE price (PUT)
+app.put("/books/:name", async (req, res) => {
+  const name = decodeURIComponent(req.params.name);
+  const { price } = req.body;
 
-app.patch("/bookprice/:name",(req,res)=>{
-   const {name} = req.params
-   const {price}=req.body
-   for(let i=0;i<Books.length;i++){
-    if(name==Books[i].name){
-        Books[i].price=price;
-        return res.status(200).send({
-            success:true,
-            msg :"book price updated",
-            data:Books[i]
-        })
-    }
-    else{
-        return res.status(404).send({
-            success:false,
-            msg : "book name not found",
-            data : null
-        })
-    }
-}});
-app.get("/health",(req,res)=>{
-    return res.send("server is up and running")
+  const updatedBook = await Book.findOneAndUpdate(
+    { name },
+    { price },
+    { new: true }
+  );
+
+  if (!updatedBook) {
+    return res.status(404).send({
+      success: false,
+      msg: "Book not found"
+    });
+  }
+
+  res.status(200).send({
+    success: true,
+    msg: "Book info updated",
+    data: updatedBook
+  });
+});
+
+// UPDATE price (PATCH)
+app.patch("/bookprice/:name", async (req, res) => {
+  const { name } = req.params;
+  const { price } = req.body;
+
+  const book = await Book.findOne({ name });
+
+  if (!book) {
+    return res.status(404).send({
+      success: false,
+      msg: "Book not found"
+    });
+  }
+
+  book.price = price;
+  await book.save();
+
+  res.status(200).send({
+    success: true,
+    msg: "Book price updated",
+    data: book
+  });
+});
+
+// HEALTH CHECK
+app.get("/health", (req, res) => {
+  res.send("Server is up and running");
 });
 
 app.listen(PORT, () => {
-    console.log(`Server running on ${PORT}`);
-  });
+  console.log(`Server running on ${PORT}`);
+});
