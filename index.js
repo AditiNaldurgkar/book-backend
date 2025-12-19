@@ -8,25 +8,16 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT;
-
 app.use(cors());
 app.use(express.json());
-
-// MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
-
-
-// ================== ROUTES ==================
-
-// GET all books
 app.get("/books", async (req, res) => {
   const books = await Book.find();
   res.status(200).send(books);
 });
 
-// ADD book
 app.post("/books", async (req, res) => {
   const { name, price, imglink, description } = req.body;
 
@@ -46,7 +37,6 @@ app.post("/books", async (req, res) => {
   });
 });
 
-// GET book by name
 app.get("/books/:name", async (req, res) => {
   const { name } = req.params;
 
@@ -66,7 +56,6 @@ app.get("/books/:name", async (req, res) => {
   });
 });
 
-// DELETE book
 app.delete("/books/:name", async (req, res) => {
   const name = decodeURIComponent(req.params.name);
 
@@ -86,7 +75,6 @@ app.delete("/books/:name", async (req, res) => {
   });
 });
 
-// UPDATE price (PUT)
 app.put("/books/:name", async (req, res) => {
   const name = decodeURIComponent(req.params.name);
   const { price } = req.body;
@@ -111,7 +99,6 @@ app.put("/books/:name", async (req, res) => {
   });
 });
 
-// UPDATE price (PATCH)
 app.patch("/bookprice/:name", async (req, res) => {
   const { name } = req.params;
   const { price } = req.body;
@@ -135,7 +122,6 @@ app.patch("/bookprice/:name", async (req, res) => {
   });
 });
 
-// HEALTH CHECK
 app.get("/health", (req, res) => {
   res.send("Server is up and running");
 });
