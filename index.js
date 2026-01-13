@@ -25,18 +25,20 @@ mongoose.connect(process.env.MONGO_URI)
 app.get("/books", async (req, res) => {
   const books = await Book.find();
   res.status(200).send(books);
+  
 });
 
 app.post("/books", async (req, res) => {
-  const { name, price, imglink, description } = req.body;
+  const { name, author, price, imglink, description } = req.body;
 
   const newBook = new Book({
     name,
+    author,
     price,
     imglink,
     description
   });
-
+console.log(newBook);
   await newBook.save();
 
   res.status(201).send({
