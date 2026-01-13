@@ -3,6 +3,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
 import Book from "./models/Book.js";
+import bcrypt from "bcryptjs";
+import User from "./models/User.js";
+
 
 dotenv.config();
 
@@ -46,6 +49,74 @@ console.log(newBook);
     msg: "Book added successfully",
     data: newBook
   });
+});
+app.post("/signup", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const userExists = await User.findOne({
+      $or: [{ name }, { email }]
+    });
+
+    if (userExists) {
+      return res.status(400).json({
+        success: false,
+        msg: "User with this name or email already exists"
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword
+    });
+
+    await newUser.save();
+
+    res.status(201).json({
+      success: true,
+      msg: "Signup successful"
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+app.post("/login", async (req, res) => {
+  try {
+    const { name, password } = req.body;
+
+    const user = await User.findOne({ name });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        msg: "Invalid credentials"
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        msg: "Invalid credentials"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      msg: "Login successful",
+      user: {
+        id: user._id,
+        name: user.name
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Server error" });
+  }
 });
 
 app.get("/books/:name", async (req, res) => {
