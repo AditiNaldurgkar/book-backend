@@ -211,3 +211,10 @@ app.get("/health", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
 });
+app.post("/logout", (req, res) => {
+  res.status(200).json({
+    success: true,
+    msg: "Logout successful"
+  });
+});
+
