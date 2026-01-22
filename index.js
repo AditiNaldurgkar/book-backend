@@ -105,13 +105,14 @@ app.post("/login", async (req, res) => {
     }
 
     res.status(200).json({
-      success: true,
-      msg: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name
-      }
-    });
+  success: true,
+  msg: "Login successful",
+  user: {
+    id: user._id,
+    name: user.name,
+    role: user.role
+  }
+});
 
   } catch (error) {
     console.error(error);
@@ -158,28 +159,27 @@ app.delete("/books/:name", async (req, res) => {
 });
 
 app.put("/books/:name", async (req, res) => {
-  const name = decodeURIComponent(req.params.name);
-  const { price } = req.body;
+  const { role } = req.body;
 
-  const updatedBook = await Book.findOneAndUpdate(
-    { name },
-    { price },
-    { new: true }
-  );
-
-  if (!updatedBook) {
-    return res.status(404).send({
+  if (role !== "admin") {
+    return res.status(403).json({
       success: false,
-      msg: "Book not found"
+      msg: "Access denied. Admin only."
     });
   }
 
-  res.status(200).send({
+  const updatedBook = await Book.findOneAndUpdate(
+    { name: req.params.name },
+    { price: req.body.price },
+    { new: true }
+  );
+
+  res.json({
     success: true,
-    msg: "Book info updated",
     data: updatedBook
   });
 });
+
 
 app.patch("/bookprice/:name", async (req, res) => {
   const { name } = req.params;
